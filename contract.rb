@@ -20,12 +20,31 @@ class Contract
 
   attr_accessor :claims
 
+  LIABILITY_PERCENTAGE = 0.8
+
   def initialize(purchase_price, covered_product)
     @id                 = SecureRandom.uuid
     @purchase_price     = purchase_price
     @status             = "PENDING"
     @covered_product    = covered_product
     @claims             = Array.new
+  end
+
+  # These two new methods we've added seem to be responsibilities of Contract.
+  # Let's move them...
+  def limit_of_liability()
+    claim_total = 0.0
+    @claims.each { |claim|
+      claim_total += claim.amount
+    }
+    # (@purchase_price - claim_total) * 0.8
+    (@purchase_price * LIABILITY_PERCENTAGE) - claim_total
+  end
+
+  def current_status(current_date)
+    current_date  >= @effective_date &&
+    current_date  <= @expiration_date &&
+    @status == "ACTIVE"
   end
 
   # Equality for entities is based on unique id
