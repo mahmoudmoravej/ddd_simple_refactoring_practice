@@ -12,15 +12,25 @@ require 'date'
 
 class ClaimsAdjudication
   def adjudicate(contract, new_claim)
+    if limit_of_liability(contract) > new_claim.amount &&
+      current_status(contract, new_claim.date)
+      contract.claims << new_claim
+    end
+  end
+
+  # These two new methods we've added seem to be responsibilities of Contract.
+  # Let's move them...
+  def limit_of_liability(contract)
     claim_total = 0.0
     contract.claims.each { |claim|
       claim_total += claim.amount
     }
-    if (contract.purchase_price - claim_total) * 0.8 > new_claim.amount &&
-      new_claim.date  >= contract.effective_date &&
-      new_claim.date  <= contract.expiration_date &&
-      contract.status == "ACTIVE"
-      contract.claims << new_claim
-    end
+    (contract.purchase_price - claim_total) * 0.8
+  end
+
+  def current_status(contract, current_date)
+    current_date  >= contract.effective_date &&
+    current_date  <= contract.expiration_date &&
+    contract.status == "ACTIVE"
   end
 end
