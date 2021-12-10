@@ -13,6 +13,7 @@ class Contract
   attr_reader   :purchase_price
   attr_reader   :covered_product
   attr_reader   :terms_and_conditions
+  attr_reader   :events
 
   attr_accessor :status
   attr_accessor :claims
@@ -25,6 +26,7 @@ class Contract
     @covered_product    = covered_product
     @terms_and_conditions = terms_and_conditions
     @claims             = Array.new
+    @events              = Array.new
   end
 
   def status(current_date)
@@ -48,6 +50,7 @@ class Contract
 
   def extend_annual_subscription
     @terms_and_conditions = @terms_and_conditions.annually_extended
+    @events << SubscriptionRenewed.new(id, "Automatic Annual Renewal")
   end
 
   # Equality for entities is based on unique id
