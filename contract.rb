@@ -2,6 +2,7 @@ require 'securerandom'
 
 require_relative './product'
 require_relative './terms_and_conditions'
+require_relative './customer_reimbursement_requested'
 
 # Contract represents an extended warranty for a covered product.
 # A contract is in a PENDING state prior to the effective date,
@@ -30,7 +31,11 @@ class Contract
   end
 
   def status(current_date)
-    @terms_and_conditions.status(current_date)
+    if @events.any? {|event| event.is_a? CustomerReimbursementRequested}
+      "FULFILLED"
+    else
+      @terms_and_conditions.status(current_date)
+    end
   end
 
   # These two new methods we've added seem to be responsibilities of Contract.
@@ -44,13 +49,13 @@ class Contract
     (@purchase_price * LIABILITY_PERCENTAGE) - claim_total
   end
 
-  def status(current_date)
-    @terms_and_conditions.status(current_date)
-  end
-
   def extend_annual_subscription
     @terms_and_conditions = @terms_and_conditions.annually_extended
     @events << SubscriptionRenewed.new(id, "Automatic Annual Renewal")
+  end
+
+  def terminate(rep_name, reason)
+    @events << CustomerReimbursementRequested.new(id, rep_name, reason)
   end
 
   # Equality for entities is based on unique id
